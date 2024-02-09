@@ -154,7 +154,7 @@ void eeconfig_update_rgb_matrix(void) {
 
 void eeconfig_update_rgb_matrix_default(void) {
     dprintf("eeconfig_update_rgb_matrix_default\n");
-    rgb_matrix_config.enable = 1;
+    rgb_matrix_config.enable = RGB_MATRIX_DEFAULT_ON;
     rgb_matrix_config.mode   = RGB_MATRIX_DEFAULT_MODE;
     rgb_matrix_config.hsv    = (HSV){RGB_MATRIX_DEFAULT_HUE, RGB_MATRIX_DEFAULT_SAT, RGB_MATRIX_DEFAULT_VAL};
     rgb_matrix_config.speed  = RGB_MATRIX_DEFAULT_SPD;
@@ -485,6 +485,36 @@ __attribute__((weak)) bool rgb_matrix_indicators_user(void) {
     return true;
 }
 
+struct rgb_matrix_limits_t rgb_matrix_get_limits(uint8_t iter) {
+    struct rgb_matrix_limits_t limits = {0};
+#if defined(RGB_MATRIX_LED_PROCESS_LIMIT) && RGB_MATRIX_LED_PROCESS_LIMIT > 0 && RGB_MATRIX_LED_PROCESS_LIMIT < RGB_MATRIX_LED_COUNT
+#    if defined(RGB_MATRIX_SPLIT)
+    limits.led_min_index = RGB_MATRIX_LED_PROCESS_LIMIT * (iter);
+    limits.led_max_index = limits.led_min_index + RGB_MATRIX_LED_PROCESS_LIMIT;
+    if (limits.led_max_index > RGB_MATRIX_LED_COUNT) limits.led_max_index = RGB_MATRIX_LED_COUNT;
+    uint8_t k_rgb_matrix_split[2] = RGB_MATRIX_SPLIT;
+    if (is_keyboard_left() && (limits.led_max_index > k_rgb_matrix_split[0])) limits.led_max_index = k_rgb_matrix_split[0];
+    if (!(is_keyboard_left()) && (limits.led_min_index < k_rgb_matrix_split[0])) limits.led_min_index = k_rgb_matrix_split[0];
+#    else
+    limits.led_min_index = RGB_MATRIX_LED_PROCESS_LIMIT * (iter);
+    limits.led_max_index = limits.led_min_index + RGB_MATRIX_LED_PROCESS_LIMIT;
+    if (limits.led_max_index > RGB_MATRIX_LED_COUNT) limits.led_max_index = RGB_MATRIX_LED_COUNT;
+#    endif
+#else
+#    if defined(RGB_MATRIX_SPLIT)
+    limits.led_min_index                = 0;
+    limits.led_max_index                = RGB_MATRIX_LED_COUNT;
+    const uint8_t k_rgb_matrix_split[2] = RGB_MATRIX_SPLIT;
+    if (is_keyboard_left() && (limits.led_max_index > k_rgb_matrix_split[0])) limits.led_max_index = k_rgb_matrix_split[0];
+    if (!(is_keyboard_left()) && (limits.led_min_index < k_rgb_matrix_split[0])) limits.led_min_index = k_rgb_matrix_split[0];
+#    else
+    limits.led_min_index = 0;
+    limits.led_max_index = RGB_MATRIX_LED_COUNT;
+#    endif
+#endif
+    return limits;
+}
+
 void rgb_matrix_indicators_advanced(effect_params_t *params) {
     /* special handling is needed for "params->iter", since it's already been incremented.
      * Could move the invocations to rgb_task_render, but then it's missing a few checks
@@ -796,7 +826,7 @@ void rgb_matrix_decrease_speed(void) {
 void rgb_matrix_set_flags_eeprom_helper(led_flags_t flags, bool write_to_eeprom) {
     rgb_matrix_config.flags = flags;
     eeconfig_flag_rgb_matrix(write_to_eeprom);
-    dprintf("rgb matrix set speed [%s]: %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", rgb_matrix_config.flags);
+    dprintf("rgb matrix set flags [%s]: %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", rgb_matrix_config.flags);
 }
 
 led_flags_t rgb_matrix_get_flags(void) {
