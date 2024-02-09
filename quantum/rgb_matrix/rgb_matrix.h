@@ -40,6 +40,8 @@
 #    include "is31flcommon.h"
 #elif defined(RGB_MATRIX_SNLED27351)
 #    include "snled27351.h"
+#elif defined(RGB_MATRIX_SNLED27351_SPI)
+#    include "snled27351-spi.h"
 #elif defined(RGB_MATRIX_AW20216S)
 #    include "aw20216s.h"
 #elif defined(RGB_MATRIX_WS2812)
@@ -145,7 +147,11 @@
 #define RGB_MATRIX_TEST_LED_FLAGS() \
     if (!HAS_ANY_FLAGS(g_led_config.flags[i], params->flags)) continue
 
+<<<<<<< HEAD
 #define RGB_MATRIX_TIMEOUT_INFINITE  (UINT32_MAX)
+=======
+#define RGB_MATRIX_TIMEOUT_INFINITE (UINT32_MAX)
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 
 enum rgb_matrix_effects {
     RGB_MATRIX_NONE = 0,
@@ -247,6 +253,7 @@ led_flags_t rgb_matrix_get_flags(void);
 void        rgb_matrix_set_flags(led_flags_t flags);
 void        rgb_matrix_set_flags_noeeprom(led_flags_t flags);
 #ifdef RGB_MATRIX_TIMEOUT
+<<<<<<< HEAD
 #   if RGB_MATRIX_TIMEOUT > 0
 void        rgb_matrix_disable_timeout_set(uint32_t timeout);
 void        rgb_matrix_disable_time_reset(void);
@@ -256,6 +263,19 @@ void        rgb_matrix_disable_time_reset(void);
 void        rgb_matrix_driver_shutdown(void);
 bool        rgb_matrix_is_driver_shutdown(void);
 bool        rgb_matrix_driver_allow_shutdown(void);
+=======
+#    if RGB_MATRIX_TIMEOUT > 0
+void rgb_matrix_disable_timeout_set(uint32_t timeout);
+void rgb_matrix_disable_time_reset(void);
+bool rgb_matrix_timeouted(void);
+#    endif
+#endif
+#ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
+void rgb_matrix_driver_shutdown(void);
+void rgb_matrix_driver_exit_shutdown(void);
+bool rgb_matrix_is_driver_shutdown(void);
+bool rgb_matrix_driver_allow_shutdown(void);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 
 #ifndef RGBLIGHT_ENABLE

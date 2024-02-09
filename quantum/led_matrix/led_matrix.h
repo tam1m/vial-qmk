@@ -48,6 +48,9 @@
 #ifdef LED_MATRIX_SNLED27351
 #    include "snled27351-simple.h"
 #endif
+#ifdef LED_MATRIX_SNLED27351_SPI
+#    include "snled27351-simple-spi.h"
+#endif
 
 #ifndef LED_MATRIX_TIMEOUT
 #    define LED_MATRIX_TIMEOUT 0
@@ -122,7 +125,11 @@
 #define LED_MATRIX_TEST_LED_FLAGS() \
     if (!HAS_ANY_FLAGS(g_led_config.flags[i], params->flags)) continue
 
+<<<<<<< HEAD
 #define LED_MATRIX_TIMEOUT_INFINITE   (UINT32_MAX)
+=======
+#define LED_MATRIX_TIMEOUT_INFINITE (UINT32_MAX)
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 
 enum led_matrix_effects {
     LED_MATRIX_NONE = 0,
@@ -213,6 +220,7 @@ void        led_matrix_set_flags(led_flags_t flags);
 void        led_matrix_set_flags_noeeprom(led_flags_t flags);
 
 #ifdef LED_MATRIX_TIMEOUT
+<<<<<<< HEAD
 #   if LED_MATRIX_TIMEOUT > 0
 void        led_matrix_disable_timeout_set(uint32_t timeout);
 void        led_matrix_disable_time_reset(void);
@@ -223,6 +231,20 @@ void        led_matrix_disable_time_reset(void);
 void        led_matrix_driver_shutdown(void);
 bool        led_matrix_is_driver_shutdown(void);
 bool        led_matrix_driver_allow_shutdown(void);
+=======
+#    if LED_MATRIX_TIMEOUT > 0
+void led_matrix_disable_timeout_set(uint32_t timeout);
+void led_matrix_disable_time_reset(void);
+bool led_matrix_timeouted(void);
+#    endif
+#endif
+
+#ifdef LED_MATRIX_DRIVER_SHUTDOWN_ENABLE
+void led_matrix_driver_shutdown(void);
+void led_matrix_driver_exit_shutdown(void);
+bool led_matrix_is_driver_shutdown(void);
+bool led_matrix_driver_allow_shutdown(void);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 
 typedef struct {

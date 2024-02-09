@@ -192,7 +192,10 @@ void protocol_pre_task(void) {
             /* Remote wakeup */
             if ((USB_DRIVER.status & USB_GETSTATUS_REMOTE_WAKEUP_ENABLED) && suspend_wakeup_condition()) {
                 usbWakeupHost(&USB_DRIVER);
+<<<<<<< HEAD
                 usb_wakeup(&USB_DRIVER);
+=======
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
             }
         }
         /* Woken up */

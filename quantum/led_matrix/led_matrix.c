@@ -53,6 +53,7 @@ const led_point_t k_led_matrix_center = LED_MATRIX_CENTER;
 // -----End led effect includes macros-------
 // ------------------------------------------
 
+<<<<<<< HEAD
 #ifndef LED_MATRIX_TIMEOUT
 #    define LED_MATRIX_TIMEOUT 0
 #endif
@@ -82,6 +83,8 @@ const led_point_t k_led_matrix_center = LED_MATRIX_CENTER;
 #    define LED_MATRIX_DEFAULT_SPD UINT8_MAX / 2
 #endif
 
+=======
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #if defined(LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL) && (LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL >= LED_MATRIX_MAXIMUM_BRIGHTNESS)
 #    pragma error("LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL must be less than LED_MATRIX_MAXIMUM_BRIGHTNESS")
 #endif
@@ -97,7 +100,11 @@ last_hit_t g_last_hit_tracker;
 
 // internals
 #ifdef LED_MATRIX_DRIVER_SHUTDOWN_ENABLE
+<<<<<<< HEAD
 static bool            driver_shutdown   = false;
+=======
+static bool driver_shutdown = false;
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 static bool            suspend_state     = false;
 static uint8_t         led_last_enable   = UINT8_MAX;
@@ -107,7 +114,11 @@ static led_task_states led_task_state    = SYNCING;
 #if LED_MATRIX_TIMEOUT > 0
 static uint32_t led_anykey_timer;
 static uint32_t led_matrix_timeout = LED_MATRIX_TIMEOUT;
+<<<<<<< HEAD
 #endif  // LED_MATRIX_TIMEOUT > 0
+=======
+#endif // LED_MATRIX_TIMEOUT > 0
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 
 // double buffers
 static uint32_t led_timer_buffer;
@@ -359,9 +370,14 @@ static void led_task_flush(uint8_t effect) {
     led_last_enable = led_matrix_eeconfig.enable;
 #ifdef LED_MATRIX_DRIVER_SHUTDOWN_ENABLE
     // exit from shutdown to if neccesary
+<<<<<<< HEAD
     if (driver_shutdown)  {
         led_matrix_driver.exit_shutdown();
         driver_shutdown = false;
+=======
+    if (driver_shutdown) {
+        led_matrix_driver_exit_shutdown();
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 
@@ -387,7 +403,11 @@ void led_matrix_task(void) {
     bool suspend_backlight = suspend_state ||
 #if LED_MATRIX_TIMEOUT > 0
                              (led_anykey_timer > led_matrix_timeout) ||
+<<<<<<< HEAD
 #endif  // led_matrix_timeout > 0
+=======
+#endif // led_matrix_timeout > 0
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
                              false;
 
     uint8_t effect = suspend_backlight || !led_matrix_eeconfig.enable ? 0 : led_matrix_eeconfig.mode;
@@ -524,8 +544,13 @@ void led_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
     eeconfig_flag_led_matrix(write_to_eeprom);
     dprintf("led matrix toggle [%s]: led_matrix_eeconfig.enable = %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", led_matrix_eeconfig.enable);
 #ifdef LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL
+<<<<<<< HEAD
     while (led_matrix_eeconfig.enable && led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL)  {
        led_matrix_increase_val_helper(write_to_eeprom);
+=======
+    while (led_matrix_eeconfig.enable && led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+        led_matrix_increase_val_helper(write_to_eeprom);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -540,8 +565,13 @@ void led_matrix_enable(void) {
     led_matrix_enable_noeeprom();
     eeconfig_flag_led_matrix(true);
 #ifdef LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL
+<<<<<<< HEAD
     while (led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL)  {
        led_matrix_increase_val_helper(true);
+=======
+    while (led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+        led_matrix_increase_val_helper(true);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -550,8 +580,13 @@ void led_matrix_enable_noeeprom(void) {
     if (!led_matrix_eeconfig.enable) led_task_state = STARTING;
     led_matrix_eeconfig.enable = 1;
 #ifdef LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL
+<<<<<<< HEAD
     while (led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL)  {
        led_matrix_increase_val_helper(false);
+=======
+    while (led_matrix_eeconfig.val <= LED_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+        led_matrix_increase_val_helper(false);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -726,9 +761,19 @@ void led_matrix_set_flags_noeeprom(led_flags_t flags) {
 void led_matrix_disable_timeout_set(uint32_t timeout) {
     led_matrix_timeout = timeout;
 }
+<<<<<<< HEAD
 void led_matrix_disable_time_reset(void){
     led_anykey_timer = 0;
 }
+=======
+void led_matrix_disable_time_reset(void) {
+    led_anykey_timer = 0;
+}
+
+bool led_matrix_timeouted(void) {
+    return led_anykey_timer > led_matrix_timeout;
+}
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 
 #ifdef LED_MATRIX_DRIVER_SHUTDOWN_ENABLE
@@ -737,9 +782,23 @@ void led_matrix_driver_shutdown(void) {
     driver_shutdown = true;
 };
 
+<<<<<<< HEAD
+=======
+void led_matrix_driver_exit_shutdown(void) {
+    led_matrix_driver.exit_shutdown();
+    driver_shutdown = false;
+};
+
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 bool led_matrix_is_driver_shutdown(void) {
     return driver_shutdown;
 }
 
+<<<<<<< HEAD
 __attribute__((weak)) bool led_matrix_driver_allow_shutdown(void) { return true; };
+=======
+__attribute__((weak)) bool led_matrix_driver_allow_shutdown(void) {
+    return true;
+};
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif

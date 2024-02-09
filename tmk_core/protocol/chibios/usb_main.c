@@ -765,6 +765,7 @@ void init_usb_driver(USBDriver *usbp) {
     chVTObjectInit(&keyboard_idle_timer);
 }
 
+<<<<<<< HEAD
 __attribute__((weak)) void usb_wakeup(USBDriver *usbp) {
 #if STM32_USB_USE_OTG1 || STM32_USB_USE_OTG1
     stm32_otg_t *otgp = usbp->otg;
@@ -781,6 +782,8 @@ __attribute__((weak)) void usb_wakeup(USBDriver *usbp) {
 #endif
 }
 
+=======
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 __attribute__((weak)) void usb_start(USBDriver *usbp) {
     usbStart(usbp, &usbcfg);
     usbConnectBus(usbp);

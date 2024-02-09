@@ -33,9 +33,12 @@
 /* Initialize the USB driver and bus */
 void init_usb_driver(USBDriver *usbp);
 
+<<<<<<< HEAD
 /* Wakeup the USB driver */
 void usb_wakeup(USBDriver *usbp);
 
+=======
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 /* Start the USB driver */
 void usb_start(USBDriver *usbp);
 

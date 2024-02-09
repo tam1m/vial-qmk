@@ -55,6 +55,7 @@ __attribute__((weak)) RGB rgb_matrix_hsv_to_rgb(HSV hsv) {
 // -----End rgb effect includes macros-------
 // ------------------------------------------
 
+<<<<<<< HEAD
 #ifndef RGB_MATRIX_TIMEOUT
 #    define RGB_MATRIX_TIMEOUT 0
 #endif
@@ -109,6 +110,11 @@ __attribute__((weak)) RGB rgb_matrix_hsv_to_rgb(HSV hsv) {
 #    pragma error("RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL must be less than RGB_MATRIX_MAXIMUM_BRIGHTNESS")
 #endif
 
+=======
+#if defined(RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL) && (RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL >= RGB_MATRIX_MAXIMUM_BRIGHTNESS)
+#    pragma error("RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL must be less than RGB_MATRIX_MAXIMUM_BRIGHTNESS")
+#endif
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 // globals
 rgb_config_t rgb_matrix_config; // TODO: would like to prefix this with g_ for global consistancy, do this in another pr
 uint32_t     g_rgb_timer;
@@ -121,7 +127,11 @@ last_hit_t g_last_hit_tracker;
 
 // internals
 #ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
+<<<<<<< HEAD
 static bool            driver_shutdown   = false;
+=======
+static bool driver_shutdown = false;
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 static bool            suspend_state     = false;
 static uint8_t         rgb_last_enable   = UINT8_MAX;
@@ -131,7 +141,11 @@ static rgb_task_states rgb_task_state    = SYNCING;
 #if RGB_MATRIX_TIMEOUT > 0
 static uint32_t rgb_anykey_timer;
 static uint32_t rgb_matrix_timeout = RGB_MATRIX_TIMEOUT;
+<<<<<<< HEAD
 #endif  // RGB_MATRIX_TIMEOUT > 0
+=======
+#endif // RGB_MATRIX_TIMEOUT > 0
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 
 // double buffers
 static uint32_t rgb_timer_buffer;
@@ -422,9 +436,14 @@ static void rgb_task_flush(uint8_t effect) {
     rgb_last_enable = rgb_matrix_config.enable;
 #ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
     // exit from shutdown to if neccesary
+<<<<<<< HEAD
     if (driver_shutdown)  {
         rgb_matrix_driver.exit_shutdown();
         driver_shutdown = false;
+=======
+    if (driver_shutdown) {
+        rgb_matrix_driver_exit_shutdown();
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
     // update pwm buffers
@@ -593,7 +612,11 @@ void rgb_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
     dprintf("rgb matrix toggle [%s]: rgb_matrix_config.enable = %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", rgb_matrix_config.enable);
 #ifdef RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL
     while (rgb_matrix_config.enable && rgb_matrix_config.hsv.v < RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+<<<<<<< HEAD
        rgb_matrix_increase_val_helper(write_to_eeprom);
+=======
+        rgb_matrix_increase_val_helper(write_to_eeprom);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -609,7 +632,11 @@ void rgb_matrix_enable(void) {
     eeconfig_flag_rgb_matrix(true);
 #ifdef RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL
     while (rgb_matrix_config.hsv.v < RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+<<<<<<< HEAD
        rgb_matrix_increase_val_helper(true);
+=======
+        rgb_matrix_increase_val_helper(true);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -619,7 +646,11 @@ void rgb_matrix_enable_noeeprom(void) {
     rgb_matrix_config.enable = 1;
 #ifdef RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL
     while (rgb_matrix_config.hsv.v < RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL) {
+<<<<<<< HEAD
        rgb_matrix_increase_val_helper(false);
+=======
+        rgb_matrix_increase_val_helper(false);
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
     }
 #endif
 }
@@ -758,7 +789,11 @@ void rgb_matrix_decrease_sat(void) {
 
 void rgb_matrix_increase_val_helper(bool write_to_eeprom) {
 #ifdef RGB_MATRIX_BRIGHTNESS_TURN_OFF_VAL
+<<<<<<< HEAD
     if (!rgb_matrix_config.enable)  {
+=======
+    if (!rgb_matrix_config.enable) {
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
         rgb_matrix_toggle_eeprom_helper(write_to_eeprom);
         return;
     }
@@ -841,12 +876,25 @@ void rgb_matrix_set_flags_noeeprom(led_flags_t flags) {
     rgb_matrix_set_flags_eeprom_helper(flags, false);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #if RGB_MATRIX_TIMEOUT > 0
 void rgb_matrix_disable_timeout_set(uint32_t timeout) {
     rgb_matrix_timeout = timeout;
 }
+<<<<<<< HEAD
 void rgb_matrix_disable_time_reset(void){ rgb_anykey_timer = 0; }
+=======
+void rgb_matrix_disable_time_reset(void) {
+    rgb_anykey_timer = 0;
+}
+
+bool rgb_matrix_timeouted(void) {
+    return (rgb_anykey_timer > rgb_matrix_timeout);
+}
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
 
 #ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
@@ -855,7 +903,22 @@ void rgb_matrix_driver_shutdown(void) {
     driver_shutdown = true;
 };
 
+<<<<<<< HEAD
 bool rgb_matrix_is_driver_shutdown(void) { return driver_shutdown; }
 
 __attribute__((weak)) bool rgb_matrix_driver_allow_shutdown(void) { return true; };
+=======
+void rgb_matrix_driver_exit_shutdown(void) {
+    rgb_matrix_driver.exit_shutdown();
+    driver_shutdown = false;
+};
+
+bool rgb_matrix_is_driver_shutdown(void) {
+    return driver_shutdown;
+}
+
+__attribute__((weak)) bool rgb_matrix_driver_allow_shutdown(void) {
+    return true;
+};
+>>>>>>> 4ae5990fcc (Added wireless support; Added Lemokey L3; Added Keychron V1 Max)
 #endif
