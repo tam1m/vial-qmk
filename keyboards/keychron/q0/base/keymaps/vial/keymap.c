@@ -15,7 +15,7 @@
  */
 
 #include QMK_KEYBOARD_H
-#include "keychron_common.h"
+#include "keychron_wired_common.h"
 
 enum layers { _BASE, _FN1, _RESERVED1, _RESERVED2 };
 
