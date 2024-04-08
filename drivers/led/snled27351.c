@@ -14,268 +14,382 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "snled27351.h"
-#include "i2c_master.h"
+#pragma once
 
-#define SNLED27351_PWM_REGISTER_COUNT 192
-#define SNLED27351_LED_CONTROL_REGISTER_COUNT 24
+#include <stdint.h>
+#include <stdbool.h>
+#include "progmem.h"
+#include "util.h"
 
-#ifndef SNLED27351_I2C_TIMEOUT
-#    define SNLED27351_I2C_TIMEOUT 100
+// ======== DEPRECATED DEFINES - DO NOT USE ========
+#ifdef DRIVER_ADDR_1
+#    define SNLED27351_I2C_ADDRESS_1 DRIVER_ADDR_1
+#endif
+#ifdef DRIVER_ADDR_2
+#    define SNLED27351_I2C_ADDRESS_2 DRIVER_ADDR_2
+#endif
+#ifdef DRIVER_ADDR_3
+#    define SNLED27351_I2C_ADDRESS_3 DRIVER_ADDR_3
+#endif
+#ifdef DRIVER_ADDR_4
+#    define SNLED27351_I2C_ADDRESS_4 DRIVER_ADDR_4
+#endif
+#ifdef CKLED2001_TIMEOUT
+#    define SNLED27351_I2C_TIMEOUT CKLED2001_TIMEOUT
+#endif
+#ifdef CKLED2001_PERSISTENCE
+#    define SNLED27351_I2C_PERSISTENCE CKLED2001_PERSISTENCE
+#endif
+#ifdef PHASE_CHANNEL
+#    define SNLED27351_PHASE_CHANNEL PHASE_CHANNEL
+#endif
+#ifdef CKLED2001_CURRENT_TUNE
+#    define SNLED27351_CURRENT_TUNE CKLED2001_CURRENT_TUNE
 #endif
 
-#ifndef SNLED27351_I2C_PERSISTENCE
-#    define SNLED27351_I2C_PERSISTENCE 0
+#define MSKPHASE_12CHANNEL SNLED27351_SCAN_PHASE_12_CHANNEL
+#define MSKPHASE_11CHANNEL SNLED27351_SCAN_PHASE_11_CHANNEL
+#define MSKPHASE_10CHANNEL SNLED27351_SCAN_PHASE_10_CHANNEL
+#define MSKPHASE_9CHANNEL SNLED27351_SCAN_PHASE_9_CHANNEL
+#define MSKPHASE_8CHANNEL SNLED27351_SCAN_PHASE_8_CHANNEL
+#define MSKPHASE_7CHANNEL SNLED27351_SCAN_PHASE_7_CHANNEL
+#define MSKPHASE_6CHANNEL SNLED27351_SCAN_PHASE_6_CHANNEL
+#define MSKPHASE_5CHANNEL SNLED27351_SCAN_PHASE_5_CHANNEL
+#define MSKPHASE_4CHANNEL SNLED27351_SCAN_PHASE_4_CHANNEL
+#define MSKPHASE_3CHANNEL SNLED27351_SCAN_PHASE_3_CHANNEL
+#define MSKPHASE_2CHANNEL SNLED27351_SCAN_PHASE_2_CHANNEL
+#define MSKPHASE_1CHANNEL SNLED27351_SCAN_PHASE_1_CHANNEL
+
+#define ckled2001_led snled27351_led_t
+#define g_ckled2001_leds g_snled27351_leds
+// ========
+
+#define SNLED27351_REG_COMMAND 0xFD
+#define SNLED27351_COMMAND_LED_CONTROL 0x00
+#define SNLED27351_COMMAND_PWM 0x01
+#define SNLED27351_COMMAND_FUNCTION 0x03
+#define SNLED27351_COMMAND_CURRENT_TUNE 0x04
+
+#define SNLED27351_FUNCTION_REG_SOFTWARE_SHUTDOWN 0x00
+#define SNLED27351_SOFTWARE_SHUTDOWN_SSD_SHUTDOWN (0x0 << 0)
+#define SNLED27351_SOFTWARE_SHUTDOWN_SSD_NORMAL (0x1 << 0)
+
+#define SNLED27351_FUNCTION_REG_ID 0x11
+#define SNLED27351_DRIVER_ID 0x8A
+
+#define SNLED27351_FUNCTION_REG_PULLDOWNUP 0x13
+#define SNLED27351_PULLDOWNUP_ALL_ENABLED 0xAA
+
+#define SNLED27351_FUNCTION_REG_SCAN_PHASE 0x14
+#define SNLED27351_SCAN_PHASE_12_CHANNEL 0x00
+#define SNLED27351_SCAN_PHASE_11_CHANNEL 0x01
+#define SNLED27351_SCAN_PHASE_10_CHANNEL 0x02
+#define SNLED27351_SCAN_PHASE_9_CHANNEL 0x03
+#define SNLED27351_SCAN_PHASE_8_CHANNEL 0x04
+#define SNLED27351_SCAN_PHASE_7_CHANNEL 0x05
+#define SNLED27351_SCAN_PHASE_6_CHANNEL 0x06
+#define SNLED27351_SCAN_PHASE_5_CHANNEL 0x07
+#define SNLED27351_SCAN_PHASE_4_CHANNEL 0x08
+#define SNLED27351_SCAN_PHASE_3_CHANNEL 0x09
+#define SNLED27351_SCAN_PHASE_2_CHANNEL 0x0A
+#define SNLED27351_SCAN_PHASE_1_CHANNEL 0x0B
+
+#define SNLED27351_FUNCTION_REG_SLEW_RATE_CONTROL_MODE_1 0x15
+#define SNLED27351_SLEW_RATE_CONTROL_MODE_1_PDP_ENABLE (0b1 << 2)
+
+#define SNLED27351_FUNCTION_REG_SLEW_RATE_CONTROL_MODE_2 0x16
+#define SNLED27351_SLEW_RATE_CONTROL_MODE_2_SSL_ENABLE (0b1 << 6)
+#define SNLED27351_SLEW_RATE_CONTROL_MODE_2_DSL_ENABLE (0b1 << 7)
+
+#define SNLED27351_FUNCTION_REG_OPEN_SHORT_ENABLE 0x17
+#define SNLED27351_OPEN_SHORT_ENABLE_SDS_ENABLE (0b1 << 6)
+#define SNLED27351_OPEN_SHORT_ENABLE_ODS_ENABLE (0b1 << 7)
+
+#define SNLED27351_FUNCTION_REG_OPEN_SHORT_DUTY 0x18
+
+#define SNLED27351_FUNCTION_REG_OPEN_SHORT_FLAG 0x19
+#define SNLED27351_OPEN_SHORT_FLAG_OSINT_ENABLE (0b1 << 6)
+#define SNLED27351_OPEN_SHORT_FLAG_ODINT_ENABLE (0b1 << 7)
+
+#define SNLED27351_FUNCTION_REG_SOFTWARE_SLEEP 0x1A
+#define SNLED27351_SOFTWARE_SLEEP_ENABLE (0b1 << 1)
+
+// LED Control Registers
+#define SNLED27351_LED_CONTROL_ON_OFF_FIRST_ADDR 0x0
+#define SNLED27351_LED_CONTROL_ON_OFF_LAST_ADDR 0x17
+#define SNLED27351_LED_CONTROL_ON_OFF_LENGTH ((SNLED27351_LED_CONTROL_ON_OFF_LAST_ADDR - SNLED27351_LED_CONTROL_ON_OFF_FIRST_ADDR) + 1)
+
+#define SNLED27351_LED_CONTROL_OPEN_FIRST_ADDR 0x18
+#define SNLED27351_LED_CONTROL_OPEN_LAST_ADDR 0x2F
+#define SNLED27351_LED_CONTROL_OPEN_LENGTH ((SNLED27351_LED_CONTROL_OPEN_LAST_ADDR - SNLED27351_LED_CONTROL_OPEN_FIRST_ADDR) + 1)
+
+#define SNLED27351_LED_CONTROL_SHORT_FIRST_ADDR 0x30
+#define SNLED27351_LED_CONTROL_SHORT_LAST_ADDR 0x47
+#define SNLED27351_LED_CONTROL_SHORT_LENGTH ((SNLED27351_LED_CONTROL_SHORT_LAST_ADDR - SNLED27351_LED_CONTROL_SHORT_FIRST_ADDR) + 1)
+
+#define SNLED27351_LED_CONTROL_PAGE_LENGTH 0x48
+
+// LED Control Registers
+#define SNLED27351_LED_PWM_FIRST_ADDR 0x00
+#define SNLED27351_LED_PWM_LAST_ADDR 0xBF
+#define SNLED27351_LED_PWM_LENGTH 0xC0
+
+// Current Tune Registers
+#define SNLED27351_LED_CURRENT_TUNE_FIRST_ADDR 0x00
+#define SNLED27351_LED_CURRENT_TUNE_LAST_ADDR 0x0B
+#define SNLED27351_LED_CURRENT_TUNE_LENGTH 0x0C
+
+#define SNLED27351_I2C_ADDRESS_GND 0x74
+#define SNLED27351_I2C_ADDRESS_SCL 0x75
+#define SNLED27351_I2C_ADDRESS_SDA 0x76
+#define SNLED27351_I2C_ADDRESS_VDDIO 0x77
+
+#if defined(RGB_MATRIX_SNLED27351)
+#    define SNLED27351_LED_COUNT RGB_MATRIX_LED_COUNT
 #endif
 
-#ifndef SNLED27351_PHASE_CHANNEL
-#    define SNLED27351_PHASE_CHANNEL SNLED27351_SCAN_PHASE_12_CHANNEL
+#if defined(SNLED27351_I2C_ADDRESS_4)
+#    define SNLED27351_DRIVER_COUNT 4
+#elif defined(SNLED27351_I2C_ADDRESS_3)
+#    define SNLED27351_DRIVER_COUNT 3
+#elif defined(SNLED27351_I2C_ADDRESS_2)
+#    define SNLED27351_DRIVER_COUNT 2
+#elif defined(SNLED27351_I2C_ADDRESS_1)
+#    define SNLED27351_DRIVER_COUNT 1
 #endif
 
-#ifndef SNLED27351_CURRENT_TUNE
-#    define SNLED27351_CURRENT_TUNE \
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
-#endif
+typedef struct snled27351_led_t {
+    uint8_t driver : 2;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} PACKED snled27351_led_t;
 
-// Transfer buffer for TWITransmitData()
-uint8_t g_twi_transfer_buffer[65];
+extern const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT];
 
-// These buffers match the SNLED27351 PWM registers.
-// The control buffers match the PG0 LED On/Off registers.
-// Storing them like this is optimal for I2C transfers to the registers.
-// We could optimize this and take out the unused registers from these
-// buffers and the transfers in snled27351_write_pwm_buffer() but it's
-// probably not worth the extra complexity.
-uint8_t g_pwm_buffer[SNLED27351_DRIVER_COUNT][SNLED27351_PWM_REGISTER_COUNT];
-bool    g_pwm_buffer_update_required[SNLED27351_DRIVER_COUNT] = {false};
+void snled27351_init_drivers(void);
+void snled27351_init(uint8_t addr);
+bool snled27351_write_register(uint8_t addr, uint8_t reg, uint8_t data);
+bool snled27351_write_pwm_buffer(uint8_t addr, uint8_t *pwm_buffer);
 
-uint8_t g_led_control_registers[SNLED27351_DRIVER_COUNT][SNLED27351_LED_CONTROL_REGISTER_COUNT] = {0};
-bool    g_led_control_registers_update_required[SNLED27351_DRIVER_COUNT]                        = {false};
+void snled27351_set_color(int index, uint8_t red, uint8_t green, uint8_t blue);
+void snled27351_set_color_all(uint8_t red, uint8_t green, uint8_t blue);
 
-bool snled27351_write_register(uint8_t addr, uint8_t reg, uint8_t data) {
-    // If the transaction fails function returns false.
-    g_twi_transfer_buffer[0] = reg;
-    g_twi_transfer_buffer[1] = data;
+void snled27351_set_led_control_register(uint8_t index, bool red, bool green, bool blue);
 
-#if SNLED27351_I2C_PERSISTENCE > 0
-    for (uint8_t i = 0; i < SNLED27351_I2C_PERSISTENCE; i++) {
-        if (i2c_transmit(addr << 1, g_twi_transfer_buffer, 2, SNLED27351_I2C_TIMEOUT) != 0) {
-            return false;
-        }
-    }
-#else
-    if (i2c_transmit(addr << 1, g_twi_transfer_buffer, 2, SNLED27351_I2C_TIMEOUT) != 0) {
-        return false;
-    }
-#endif
-    return true;
-}
+// This should not be called from an interrupt
+// (eg. from a timer interrupt).
+// Call this while idle (in between matrix scans).
+// If the buffer is dirty, it will update the driver with the buffer.
+void snled27351_update_pwm_buffers(uint8_t addr, uint8_t index);
+void snled27351_update_led_control_registers(uint8_t addr, uint8_t index);
 
-bool snled27351_write_pwm_buffer(uint8_t addr, uint8_t *pwm_buffer) {
-    // Assumes PG1 is already selected.
-    // If any of the transactions fails function returns false.
-    // Transmit PWM registers in 3 transfers of 64 bytes.
+void snled27351_flush(void);
+void snled27351_shutdown(void);
+void snled27351_exit_shutdown(void);
+void snled27351_sw_return_normal(uint8_t addr);
+void snled27351_sw_shutdown(uint8_t addr);
 
-    // Iterate over the pwm_buffer contents at 64 byte intervals.
-    for (uint8_t i = 0; i < SNLED27351_PWM_REGISTER_COUNT; i += 64) {
-        g_twi_transfer_buffer[0] = i;
-        // Copy the data from i to i+63.
-        // Device will auto-increment register for data after the first byte
-        // Thus this sets registers 0x00-0x0F, 0x10-0x1F, etc. in one transfer.
-        for (uint8_t j = 0; j < 64; j++) {
-            g_twi_transfer_buffer[1 + j] = pwm_buffer[i + j];
-        }
+#define A_1 0x00
+#define A_2 0x01
+#define A_3 0x02
+#define A_4 0x03
+#define A_5 0x04
+#define A_6 0x05
+#define A_7 0x06
+#define A_8 0x07
+#define A_9 0x08
+#define A_10 0x09
+#define A_11 0x0A
+#define A_12 0x0B
+#define A_13 0x0C
+#define A_14 0x0D
+#define A_15 0x0E
+#define A_16 0x0F
 
-#if SNLED27351_I2C_PERSISTENCE > 0
-        for (uint8_t i = 0; i < SNLED27351_I2C_PERSISTENCE; i++) {
-            if (i2c_transmit(addr << 1, g_twi_transfer_buffer, 65, SNLED27351_I2C_TIMEOUT) != 0) {
-                return false;
-            }
-        }
-#else
-        if (i2c_transmit(addr << 1, g_twi_transfer_buffer, 65, SNLED27351_I2C_TIMEOUT) != 0) {
-            return false;
-        }
-#endif
-    }
-    return true;
-}
+#define B_1 0x10
+#define B_2 0x11
+#define B_3 0x12
+#define B_4 0x13
+#define B_5 0x14
+#define B_6 0x15
+#define B_7 0x16
+#define B_8 0x17
+#define B_9 0x18
+#define B_10 0x19
+#define B_11 0x1A
+#define B_12 0x1B
+#define B_13 0x1C
+#define B_14 0x1D
+#define B_15 0x1E
+#define B_16 0x1F
 
-void snled27351_init_drivers(void) {
-    i2c_init();
+#define C_1 0x20
+#define C_2 0x21
+#define C_3 0x22
+#define C_4 0x23
+#define C_5 0x24
+#define C_6 0x25
+#define C_7 0x26
+#define C_8 0x27
+#define C_9 0x28
+#define C_10 0x29
+#define C_11 0x2A
+#define C_12 0x2B
+#define C_13 0x2C
+#define C_14 0x2D
+#define C_15 0x2E
+#define C_16 0x2F
 
-    snled27351_init(SNLED27351_I2C_ADDRESS_1);
-#if defined(SNLED27351_I2C_ADDRESS_2)
-    snled27351_init(SNLED27351_I2C_ADDRESS_2);
-#    if defined(SNLED27351_I2C_ADDRESS_3)
-    snled27351_init(SNLED27351_I2C_ADDRESS_3);
-#        if defined(SNLED27351_I2C_ADDRESS_4)
-    snled27351_init(SNLED27351_I2C_ADDRESS_4);
-#        endif
-#    endif
-#endif
+#define D_1 0x30
+#define D_2 0x31
+#define D_3 0x32
+#define D_4 0x33
+#define D_5 0x34
+#define D_6 0x35
+#define D_7 0x36
+#define D_8 0x37
+#define D_9 0x38
+#define D_10 0x39
+#define D_11 0x3A
+#define D_12 0x3B
+#define D_13 0x3C
+#define D_14 0x3D
+#define D_15 0x3E
+#define D_16 0x3F
 
-    for (int i = 0; i < SNLED27351_LED_COUNT; i++) {
-        snled27351_set_led_control_register(i, true, true, true);
-    }
+#define E_1 0x40
+#define E_2 0x41
+#define E_3 0x42
+#define E_4 0x43
+#define E_5 0x44
+#define E_6 0x45
+#define E_7 0x46
+#define E_8 0x47
+#define E_9 0x48
+#define E_10 0x49
+#define E_11 0x4A
+#define E_12 0x4B
+#define E_13 0x4C
+#define E_14 0x4D
+#define E_15 0x4E
+#define E_16 0x4F
 
-    snled27351_update_led_control_registers(SNLED27351_I2C_ADDRESS_1, 0);
-#if defined(SNLED27351_I2C_ADDRESS_2)
-    snled27351_update_led_control_registers(SNLED27351_I2C_ADDRESS_2, 1);
-#    if defined(SNLED27351_I2C_ADDRESS_3)
-    snled27351_update_led_control_registers(SNLED27351_I2C_ADDRESS_3, 2);
-#        if defined(SNLED27351_I2C_ADDRESS_4)
-    snled27351_update_led_control_registers(SNLED27351_I2C_ADDRESS_4, 3);
-#        endif
-#    endif
-#endif
-}
+#define F_1 0x50
+#define F_2 0x51
+#define F_3 0x52
+#define F_4 0x53
+#define F_5 0x54
+#define F_6 0x55
+#define F_7 0x56
+#define F_8 0x57
+#define F_9 0x58
+#define F_10 0x59
+#define F_11 0x5A
+#define F_12 0x5B
+#define F_13 0x5C
+#define F_14 0x5D
+#define F_15 0x5E
+#define F_16 0x5F
 
-void snled27351_init(uint8_t addr) {
-    // Select to function page
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_FUNCTION);
-    // Setting LED driver to shutdown mode
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SHUTDOWN, SNLED27351_SOFTWARE_SHUTDOWN_SSD_SHUTDOWN);
-    // Setting internal channel pulldown/pullup
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_PULLDOWNUP, SNLED27351_PULLDOWNUP_ALL_ENABLED);
-    // Select number of scan phase
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SCAN_PHASE, SNLED27351_PHASE_CHANNEL);
-    // Setting PWM Delay Phase
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SLEW_RATE_CONTROL_MODE_1, SNLED27351_SLEW_RATE_CONTROL_MODE_1_PDP_ENABLE);
-    // Setting Driving/Sinking Channel Slew Rate
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SLEW_RATE_CONTROL_MODE_2, SNLED27351_SLEW_RATE_CONTROL_MODE_2_DSL_ENABLE | SNLED27351_SLEW_RATE_CONTROL_MODE_2_SSL_ENABLE);
-    // Setting Iref
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SLEEP, 0);
-    // Set LED CONTROL PAGE (Page 0)
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_LED_CONTROL);
-    for (int i = 0; i < SNLED27351_LED_CONTROL_ON_OFF_LENGTH; i++) {
-        snled27351_write_register(addr, i, 0x00);
-    }
+#define G_1 0x60
+#define G_2 0x61
+#define G_3 0x62
+#define G_4 0x63
+#define G_5 0x64
+#define G_6 0x65
+#define G_7 0x66
+#define G_8 0x67
+#define G_9 0x68
+#define G_10 0x69
+#define G_11 0x6A
+#define G_12 0x6B
+#define G_13 0x6C
+#define G_14 0x6D
+#define G_15 0x6E
+#define G_16 0x6F
 
-    // Set PWM PAGE (Page 1)
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_PWM);
-    for (int i = 0; i < SNLED27351_LED_CURRENT_TUNE_LENGTH; i++) {
-        snled27351_write_register(addr, i, 0x00);
-    }
+#define H_1 0x70
+#define H_2 0x71
+#define H_3 0x72
+#define H_4 0x73
+#define H_5 0x74
+#define H_6 0x75
+#define H_7 0x76
+#define H_8 0x77
+#define H_9 0x78
+#define H_10 0x79
+#define H_11 0x7A
+#define H_12 0x7B
+#define H_13 0x7C
+#define H_14 0x7D
+#define H_15 0x7E
+#define H_16 0x7F
 
-    // Set CURRENT PAGE (Page 4)
-    uint8_t current_tune_reg_list[SNLED27351_LED_CURRENT_TUNE_LENGTH] = SNLED27351_CURRENT_TUNE;
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_CURRENT_TUNE);
-    for (int i = 0; i < SNLED27351_LED_CURRENT_TUNE_LENGTH; i++) {
-        snled27351_write_register(addr, i, current_tune_reg_list[i]);
-    }
+#define I_1 0x80
+#define I_2 0x81
+#define I_3 0x82
+#define I_4 0x83
+#define I_5 0x84
+#define I_6 0x85
+#define I_7 0x86
+#define I_8 0x87
+#define I_9 0x88
+#define I_10 0x89
+#define I_11 0x8A
+#define I_12 0x8B
+#define I_13 0x8C
+#define I_14 0x8D
+#define I_15 0x8E
+#define I_16 0x8F
 
-    // Enable LEDs ON/OFF
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_LED_CONTROL);
-    for (int i = 0; i < SNLED27351_LED_CONTROL_ON_OFF_LENGTH; i++) {
-        snled27351_write_register(addr, i, 0xFF);
-    }
+#define J_1 0x90
+#define J_2 0x91
+#define J_3 0x92
+#define J_4 0x93
+#define J_5 0x94
+#define J_6 0x95
+#define J_7 0x96
+#define J_8 0x97
+#define J_9 0x98
+#define J_10 0x99
+#define J_11 0x9A
+#define J_12 0x9B
+#define J_13 0x9C
+#define J_14 0x9D
+#define J_15 0x9E
+#define J_16 0x9F
 
-    // Select to function page
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_FUNCTION);
-    // Setting LED driver to normal mode
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SHUTDOWN, SNLED27351_SOFTWARE_SHUTDOWN_SSD_NORMAL);
-}
+#define K_1 0xA0
+#define K_2 0xA1
+#define K_3 0xA2
+#define K_4 0xA3
+#define K_5 0xA4
+#define K_6 0xA5
+#define K_7 0xA6
+#define K_8 0xA7
+#define K_9 0xA8
+#define K_10 0xA9
+#define K_11 0xAA
+#define K_12 0xAB
+#define K_13 0xAC
+#define K_14 0xAD
+#define K_15 0xAE
+#define K_16 0xAF
 
-void snled27351_set_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
-    snled27351_led_t led;
-    if (index >= 0 && index < SNLED27351_LED_COUNT) {
-        memcpy_P(&led, (&g_snled27351_leds[index]), sizeof(led));
-
-        if (g_pwm_buffer[led.driver][led.r] == red && g_pwm_buffer[led.driver][led.g] == green && g_pwm_buffer[led.driver][led.b] == blue) {
-            return;
-        }
-        g_pwm_buffer[led.driver][led.r]          = red;
-        g_pwm_buffer[led.driver][led.g]          = green;
-        g_pwm_buffer[led.driver][led.b]          = blue;
-        g_pwm_buffer_update_required[led.driver] = true;
-    }
-}
-
-void snled27351_set_color_all(uint8_t red, uint8_t green, uint8_t blue) {
-    for (int i = 0; i < SNLED27351_LED_COUNT; i++) {
-        snled27351_set_color(i, red, green, blue);
-    }
-}
-
-void snled27351_set_led_control_register(uint8_t index, bool red, bool green, bool blue) {
-    snled27351_led_t led;
-    memcpy_P(&led, (&g_snled27351_leds[index]), sizeof(led));
-
-    uint8_t control_register_r = led.r / 8;
-    uint8_t control_register_g = led.g / 8;
-    uint8_t control_register_b = led.b / 8;
-    uint8_t bit_r              = led.r % 8;
-    uint8_t bit_g              = led.g % 8;
-    uint8_t bit_b              = led.b % 8;
-
-    if (red) {
-        g_led_control_registers[led.driver][control_register_r] |= (1 << bit_r);
-    } else {
-        g_led_control_registers[led.driver][control_register_r] &= ~(1 << bit_r);
-    }
-    if (green) {
-        g_led_control_registers[led.driver][control_register_g] |= (1 << bit_g);
-    } else {
-        g_led_control_registers[led.driver][control_register_g] &= ~(1 << bit_g);
-    }
-    if (blue) {
-        g_led_control_registers[led.driver][control_register_b] |= (1 << bit_b);
-    } else {
-        g_led_control_registers[led.driver][control_register_b] &= ~(1 << bit_b);
-    }
-
-    g_led_control_registers_update_required[led.driver] = true;
-}
-
-void snled27351_update_pwm_buffers(uint8_t addr, uint8_t index) {
-    if (g_pwm_buffer_update_required[index]) {
-        snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_PWM);
-
-        // If any of the transactions fail we risk writing dirty PG0,
-        // refresh page 0 just in case.
-        if (!snled27351_write_pwm_buffer(addr, g_pwm_buffer[index])) {
-            g_led_control_registers_update_required[index] = true;
-        }
-    }
-    g_pwm_buffer_update_required[index] = false;
-}
-
-void snled27351_update_led_control_registers(uint8_t addr, uint8_t index) {
-    if (g_led_control_registers_update_required[index]) {
-        snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_LED_CONTROL);
-        for (int i = 0; i < SNLED27351_LED_CONTROL_REGISTER_COUNT; i++) {
-            snled27351_write_register(addr, i, g_led_control_registers[index][i]);
-        }
-    }
-    g_led_control_registers_update_required[index] = false;
-}
-
-void snled27351_flush(void) {
-    snled27351_update_pwm_buffers(SNLED27351_I2C_ADDRESS_1, 0);
-#if defined(SNLED27351_I2C_ADDRESS_2)
-    snled27351_update_pwm_buffers(SNLED27351_I2C_ADDRESS_2, 1);
-#    if defined(SNLED27351_I2C_ADDRESS_3)
-    snled27351_update_pwm_buffers(SNLED27351_I2C_ADDRESS_3, 2);
-#        if defined(SNLED27351_I2C_ADDRESS_4)
-    snled27351_update_pwm_buffers(SNLED27351_I2C_ADDRESS_4, 3);
-#        endif
-#    endif
-#endif
-}
-
-void snled27351_sw_return_normal(uint8_t addr) {
-    // Select to function page
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_FUNCTION);
-    // Setting LED driver to normal mode
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SHUTDOWN, SNLED27351_SOFTWARE_SHUTDOWN_SSD_NORMAL);
-}
-
-void snled27351_sw_shutdown(uint8_t addr) {
-    // Select to function page
-    snled27351_write_register(addr, SNLED27351_REG_COMMAND, SNLED27351_COMMAND_FUNCTION);
-    // Setting LED driver to shutdown mode
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SHUTDOWN, SNLED27351_SOFTWARE_SHUTDOWN_SSD_SHUTDOWN);
-    // Write SW Sleep Register
-    snled27351_write_register(addr, SNLED27351_FUNCTION_REG_SOFTWARE_SLEEP, SNLED27351_SOFTWARE_SLEEP_ENABLE);
-}
+#define L_1 0xB0
+#define L_2 0xB1
+#define L_3 0xB2
+#define L_4 0xB3
+#define L_5 0xB4
+#define L_6 0xB5
+#define L_7 0xB6
+#define L_8 0xB7
+#define L_9 0xB8
+#define L_10 0xB9
+#define L_11 0xBA
+#define L_12 0xBB
+#define L_13 0xBC
+#define L_14 0xBD
+#define L_15 0xBE
+#define L_16 0xBF
