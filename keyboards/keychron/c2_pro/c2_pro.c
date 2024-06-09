@@ -16,18 +16,6 @@
 
 #include "quantum.h"
 
-// clang-format off
-const matrix_row_t matrix_mask[] = {
-    0b11111111111111111111,
-    0b11111111111111111111,
-    0b11111111111111111111,
-    0b11111111111111111111,
-    0b11111111111111111111,
-    0b11111111111111101111,
-};
-
-// clang-format on
-
 #ifdef DIP_SWITCH_ENABLE
 
 bool dip_switch_update_kb(uint8_t index, bool active) {
@@ -41,8 +29,6 @@ bool dip_switch_update_kb(uint8_t index, bool active) {
 }
 
 #endif // DIP_SWITCH_ENABLE
-
-#if (defined(RGB_MATRIX_ENABLE) || defined(LED_MATRIX_ENABLE))
 
 #    ifdef RGB_MATRIX_ENABLE
 #        define LED_SET_FLAGS rgb_matrix_set_flags
@@ -74,7 +60,6 @@ bool dip_switch_update_kb(uint8_t index, bool active) {
 #        define LED_MATRIX_IS_ENABLED led_matrix_is_enabled
 #        define COLOR_WHITE 255
 #        define COLOR_BLACK 0
-#    endif
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (!process_record_user(keycode, record)) {
@@ -102,7 +87,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
-void LED_MATRIX_INDICATORS_KB(void) {
+bool LED_MATRIX_INDICATORS_KB(void) {
+    if (!LED_MATRIX_INDICATORS_USER()) {
+        return false;
+    }
     if (host_keyboard_led_state().caps_lock) {
         LED_MATRIX_SET_COLOR(CAPS_LED_INDEX, COLOR_WHITE);
     } else {
@@ -123,6 +111,7 @@ void LED_MATRIX_INDICATORS_KB(void) {
     } else {
         LED_MATRIX_SET_COLOR(WIN_LED_INDEX, COLOR_BLACK);
     }
+    return true;
 }
 
 #endif
